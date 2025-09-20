@@ -1,28 +1,39 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, setContext } from 'svelte';
+  import io from 'socket.io-client';
   import Pentagon from './lib/components/game/pentagon.svelte';
   import { gameState, implementGameState } from './lib/gameState';
   import Player from './lib/components/game/player.svelte';
   import AnimalDisplay from './lib/components/game/animalDisplay.svelte';
+  import { SOCKET_KEY } from './lib/contextKeys';
+  import type { Socket } from 'socket.io-client';
+  import { writable } from 'svelte/store';
+  import { socket } from './lib/socketStore';
 
-  let intervalId = 0;
-
-  async function getGameState() {
+  /*async function getGameState() {
       const response = await fetch(` http://localhost:8080/api/spielzustand`); // GET-Anfrage
       if (response.ok) {
         const data = await response.json();
         implementGameState(data);
 		}
-  }
+  }*/
 
   onMount(() => {
-    // Frage alle 3 Sekunden beim Backend nach, ob sich etwas geändert hat
-    intervalId = setInterval(getGameState, 3000);
-  });
+    const socketInstance = io('http://localhost:8080');
+    socket.set(socketInstance);
 
-  onDestroy(() => {
-    clearInterval(intervalId);
-  });
+    socketInstance.on('update_game_state', (data: any) => {
+        implementGameState(data);
+    });
+
+    socketInstance.on('move_failed', (data: any) => {
+        console.error("Zug fehlgeschlagen: ", data.error);
+    });
+
+    return () => {
+        socketInstance.disconnect();
+    };
+});
 </script>
 
 <div class="game-container">

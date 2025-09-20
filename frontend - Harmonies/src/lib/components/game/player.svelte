@@ -3,8 +3,9 @@
     import Tokenhand from "./tokenhand.svelte";
     import Board from "./board.svelte";
     import { setContext } from "svelte";
-    import { DND_CONTEXT_KEY } from "../../dragDropContext";
+    import { DND_CONTEXT_KEY } from "../../contextKeys";
     import { implementGameState } from "../../gameState";
+    import { socket } from "../../socketStore";
     
     let {
         player,
@@ -39,68 +40,34 @@
         handleDrop
     });
 
-    async function handleDragDropPost() {
-
-        try {
-            const response = await fetch('http://localhost:8080/api/spielzug', { // Dein API-Endpunkt
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'DragDropToken',
-                    payload: {
-                        player_index: player.index,
-                        draggedItem,
-                        dropItem
-                    }
-                    })
-            });
-
-            if (!response.ok) {
-                console.error('Server-Error:', response.statusText);
-                return;
-            }
-
-            const result = await response.json() as Anwser;
-            console.log('Antwort vom Server:', result);
-            
-            implementGameState(result.state)
-
-        } catch (error) {
-            console.error('Network-Error:', error);
+    function handleDragDropPost() {
+        if (!$socket) {
+            console.error("Socket not available!");
+            return;
         }
+        console.log('Sende Zug per WebSocket...');
+        $socket.emit('player_move', {
+            action: 'DragDropToken',
+            payload: {
+                player_index: player.index,
+                draggedItem,
+                dropItem
+            }
+        });
     }
 
-    async function handleFinishMove() {
-
-        try {
-            const response = await fetch('http://localhost:8080/api/spielzug', { // Dein API-Endpunkt
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'FinishMove',
-                    payload: {
-                        player_index: player.index
-                    }
-                    })
-            });
-
-            if (!response.ok) {
-                console.error('Server-Error:', response.statusText);
-                return;
-            }
-
-            const result = await response.json() as Anwser;
-            console.log('Antwort vom Server:', result);
-            
-            implementGameState(result.state)
-
-        } catch (error) {
-            console.error('Network-Error:', error);
+    function handleFinishMove() {
+        if (!$socket) {
+            console.error("Socket not available!");
+            return;
         }
+        console.log('Sende Zug per WebSocket...');
+        $socket.emit('player_move', {
+            action: 'FinishMove',
+            payload: {
+                player_index: player.index
+            }
+        });
     }
 
 </script>

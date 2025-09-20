@@ -1,43 +1,25 @@
 <script lang="ts">
     import TokenGroup from "./tokengroup.svelte";
-    import { implementGameState} from "../../gameState";
     import type { Anwser, Pentagon } from "../../types";
+    import { socket } from "../../socketStore";
 
     export let pentagon: Pentagon;
 
     $: tokenGroupsArray = Object.values(pentagon);
 
-    async function handleGroupClick(clickedIndex: number) {
-
-		try {
-			const response = await fetch('http://localhost:8080/api/spielzug', { // Dein API-Endpunkt
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-                    action: 'TokenGroupClick',
-                    payload: {
-                        index: clickedIndex 
-                    }
-                    })
-			});
-
-			if (!response.ok) {
-				console.error('Server-Error:', response.statusText);
-				return;
-			}
-
-			const result = await response.json() as Anwser;
-			console.log('Antwort vom Server:', result);
-			
-            // TODO dynamic stuff that shows that that move is illegal
-            implementGameState(result.state)
-
-		} catch (error) {
-			console.error('Network-Error:', error);
-		}
-	}
+    function handleGroupClick(clickedIndex: number) {
+        if (!$socket) {
+            console.error("Socket not available!");
+            return;
+        }
+        console.log('Sende Zug per WebSocket...');
+        $socket.emit('player_move', {
+            action: 'TokenGroupClick',
+            payload: {
+                index: clickedIndex 
+            }
+        });
+    }
 </script>
 
 <div class="pentagon">

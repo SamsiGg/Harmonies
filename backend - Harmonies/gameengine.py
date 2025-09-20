@@ -1,13 +1,21 @@
+import time
 import moves
 from gamestate import GameState, TurnAction
 from Bots.bot import Bot
 
 class GameEngine():
 
-    def __init__(self, game_state: GameState, players: list[Bot]):
+    def __init__(self, game_state: GameState, players: list[Bot], on_state_change=None, socketio=None):
 
         self.game_state = game_state
         self.players = players
+        self.on_state_change = on_state_change
+        self.socketio = socketio
+
+    def _trigger_update(self):
+        if self.on_state_change:
+            print('update')
+            self.on_state_change(self.game_state.to_dict())
 
     def get_valid_moves(self):
         exit
@@ -41,6 +49,7 @@ class GameEngine():
 
                 self.run_bot_turn_if_needed()
 
+        self._trigger_update()
         return move_successful
     
     def run_bot_turn_if_needed(self):
@@ -50,6 +59,9 @@ class GameEngine():
             return
         
         self.players[current_player_index].make_turn(self.game_state)
+        self._trigger_update()
+
+        self.socketio.sleep(0)
 
         self.run_bot_turn_if_needed()
 

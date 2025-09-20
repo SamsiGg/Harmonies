@@ -1,39 +1,23 @@
 <script lang="ts">
     import { implementGameState } from "../../gameState";
+    import { socket } from "../../socketStore";
     import type { AnimalDisplay,Animal, Anwser } from "../../types";
 
     let {animalDisplay = []}: {animalDisplay: AnimalDisplay} = $props();
 
-    async function handleImageClick(animal: Animal) {
-
-		try {
-			const response = await fetch('http://localhost:8080/api/spielzug', { // Dein API-Endpunkt
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-                    action: 'PlayerDisplayImageClick',
-                    payload: {
-                        name: animal.name 
-                    }
-                    })
-			});
-
-			if (!response.ok) {
-				console.error('Server-Error:', response.statusText);
-				return;
-			}
-
-			const result = await response.json() as Anwser;
-			console.log('Antwort vom Server:', result);
-			
-            implementGameState(result.state)
-
-		} catch (error) {
-			console.error('Network-Error:', error);
-		}
-	}
+    function handleImageClick(animal: Animal) {
+        if (!$socket) {
+            console.error("Socket not available!");
+            return;
+        }
+        console.log('Sende Zug per WebSocket...');
+        $socket.emit('player_move', {
+            action: 'PlayerDisplayImageClick',
+            payload: {
+                name: animal.name 
+            }
+        });
+    }
 
 </script>
 

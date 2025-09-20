@@ -16,20 +16,24 @@ def take_token_group(game_state: GameState, index):
     
 def place_token(game_state: GameState, token_id, tile_position):
 
-    if(TurnAction.TOKENS_PLACED not in game_state.completed_moves_this_turn):
+    move_successful = False
 
-        token = game_state.get_current_player().token_hand.take_token(token_id)
-        if token is None:
-            return False
+    if(TurnAction.TOKENS_PLACED not in game_state.completed_moves_this_turn
+       and len(game_state.get_current_player().token_hand.tokens) > 0):
+
+        token = game_state.get_current_player().token_hand.read_token(token_id)
         
-        if len(game_state.get_current_player().token_hand.tokens) == 0:
-            game_state.completed_moves_this_turn.add(TurnAction.TOKENS_PLACED)
-
         for tile in game_state.get_current_player().board.tiles:
             if tile.position[0] == tile_position[0] and tile.position[1] == tile_position[1]:
-                return tile.add_token(token)
+                move_successful = tile.add_token(token)
+
+        if move_successful:
+            game_state.get_current_player().token_hand.delete_token(token_id)
+            
+        if len(game_state.get_current_player().token_hand.tokens) == 0:
+            game_state.completed_moves_this_turn.add(TurnAction.TOKENS_PLACED)
     
-    return False
+    return move_successful
 
 def reposition_token(self, game_state: GameState):
     ... # TODO

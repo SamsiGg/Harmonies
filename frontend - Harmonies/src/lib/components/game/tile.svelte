@@ -1,7 +1,7 @@
 <script lang='ts'>
   import type { Tile } from "../../types";
   import { getContext } from "svelte";
-  import { DND_CONTEXT_KEY } from "../../dragDropContext";
+  import { DND_CONTEXT_KEY } from "../../contextKeys";
   import Token from "./token.svelte";
 
   /** @type {{ position: { x: number, y: number }, tokens: any[], dice: number }} */

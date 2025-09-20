@@ -1,5 +1,5 @@
 from __future__ import annotations
-import config # Assuming you have a config.py file
+import config
 from objects import Token, Animal
 
 class Player():
@@ -38,9 +38,11 @@ class TokenHand():
     def set_token_group(self, token_group):
         self.tokens = token_group
 
-    def take_token(self, index):
-        token = self.tokens.pop(index)
-        return token
+    def delete_token(self, index):
+        self.tokens.pop(index)
+    
+    def read_token(self, index):
+        return self.tokens[index]
 
     def to_dict(self):
         return [token.to_dict() if token is not None else None for token in self.tokens]
@@ -76,7 +78,7 @@ class Tile():
         position (tuple): The (x, y) coordinates of the tile on the board.
     """
     def __init__(self, position: tuple):
-        self.tokens = []
+        self.tokens: list[Token] = []
         self.position = position
         self.dice = False
 
@@ -97,7 +99,30 @@ class Tile():
         return tile_dict
     
     def check_if_add_token_valid(self, token: Token):
-        return True # TODO
+
+        #Free Tile: valid
+        if len(self.tokens) == 0:
+            return True
+        
+        #Already three high: invalid
+        if len(self.tokens) >= 3:
+            return False
+        
+        new_color = token.type
+        old_color = self.tokens[-1].type
+        
+        #No three-stack of brown allowed
+        if len(self.tokens) == 2 and old_color == 'brown' and new_color == 'brown':
+                return False
+        
+        #Red is only allowed to be placed at position 0 and 1
+        if new_color == 'red' and len(self.tokens) == 2:
+            return False
+
+        #check if color underneath allows placement
+        allowed_colors_underneath = config.ALLOWED_STACKS.get(new_color, set())
+        
+        return old_color in allowed_colors_underneath
     
     def add_token(self, token: Token):
         if self.check_if_add_token_valid(token):

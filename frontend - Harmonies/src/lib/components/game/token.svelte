@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DND_CONTEXT_KEY } from "../../dragDropContext";
+    import { DND_CONTEXT_KEY } from "../../contextKeys";
     import Tile from "./tile.svelte";
     import { getContext,hasContext } from "svelte";
 

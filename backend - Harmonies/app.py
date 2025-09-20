@@ -1,52 +1,51 @@
 from flask import Flask, jsonify, request
+from flask_socketio import SocketIO
 from flask_cors import CORS
-import gamestate
-import gameengine
+from gamestate import GameState
+from gameengine import GameEngine
 from Bots.randomBot import RandomBot
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-players = [None, RandomBot(),RandomBot(),RandomBot()]
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+players = [None, RandomBot(), None ,RandomBot()]
 is_bot_list = [1 if player is not None else 0 for player in players]
-game_state = gamestate.GameState(is_bot_list) 
-game_engine = gameengine.GameEngine(game_state, players)
+game_state = GameState(is_bot_list) 
 
-                                    
-@app.route("/api/spielzustand", methods=["GET"])
-def get_spielzustand():
-    """
-    It sends the actual gamestate periodically to the browser
-    """
-    game_state_dict = game_state.to_dict()
-    
-    # Wandel das Dictionary in eine JSON-Antwort um und sende sie
-    return jsonify(game_state_dict)
+def send_update_to_clients(new_game_state):
+    print(f"SERVER: Sende Update an Clients.")
+    socketio.emit('update_game_state', new_game_state)
 
-@app.route("/api/spielzug", methods=["POST"])
-def mache_spielzug():
-
-    data = request.get_json()
-
-    if not data:
-        return jsonify({"error": "No Data received"}), 400
-
+game_engine = GameEngine(
+    game_state=game_state,
+    players=players,
+    on_state_change=send_update_to_clients,
+    socketio=socketio
+)
+ 
+@socketio.on('player_move')
+def handle_player_move(data):
     action = data.get('action')
     payload = data.get('payload')
+    
+    move_successful= game_engine.apply_move(action, payload)
+    
+    if not move_successful:
+        socketio.emit('move_failed','fail', to=request.sid)
 
-    move_successful = game_engine.apply_move(action, payload)
+@socketio.on('connect')
+def handle_connect():
+    print(f"Ein Spieler hat sich verbunden! Sende initialen Spielzustand.")
+    
+    initial_game_state = game_engine.game_state.to_dict()
 
-    if move_successful:
-        return jsonify({
-            "message": "success",
-            "state": game_state.to_dict()
-        })
-    else:
-        return jsonify({
-            "message": "fail",
-            "state": game_state.to_dict()
-        })
+    socketio.emit('update_game_state', initial_game_state)
 
-# Starte die App (für die Entwicklung)
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Ein Spieler hat die Verbindung getrennt.')
+
 if __name__ == '__main__':
-    app.run(debug=True , port=8080)
+    socketio.run(app, port=8080, debug=True)

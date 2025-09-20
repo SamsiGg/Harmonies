@@ -12,9 +12,13 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.1.1",
     "@tsconfig/svelte": "^5.0.4",
+    "@types/socket.io-client": "^1.4.36",
     "svelte": "^5.38.1",
     "svelte-check": "^4.3.1",
     "typescript": "~5.8.3",
     "vite": "^7.1.2"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
   }
 }

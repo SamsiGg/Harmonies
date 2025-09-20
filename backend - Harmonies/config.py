@@ -21,6 +21,13 @@ TILE_POSITIONS = {
 
 ALLOWED_BOARD_TYPES = TILE_POSITIONS.keys()
 
+ALLOWED_STACKS = {
+    'brown': {'brown'},
+    'green': {'brown'},
+    'grey':  {'grey'},
+    'red':   {'grey', 'red', 'brown'}
+}
+
 ANIMAL_DATA = {
     "ray": {
         "points": [4,10,16],
