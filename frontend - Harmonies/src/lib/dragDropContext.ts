@@ -1,0 +1,1 @@
+export const DND_CONTEXT_KEY = Symbol('dnd-context');

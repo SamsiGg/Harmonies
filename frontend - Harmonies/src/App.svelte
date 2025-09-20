@@ -1,50 +1,54 @@
 <script lang="ts">
-  import viteLogo from '/vite.svg'
-  import pentagon from './lib/components/game/pentagon.svelte'
-  import Button from './lib/components/ui/button.svelte';
   import { onMount, onDestroy } from 'svelte';
+  import Pentagon from './lib/components/game/pentagon.svelte';
+  import { gameState, implementGameState } from './lib/gameState';
+  import Player from './lib/components/game/player.svelte';
+  import AnimalDisplay from './lib/components/game/animalDisplay.svelte';
 
-  let spielId = 'partie123';
   let intervalId = 0;
 
-  async function frageSpielzustandAb() {
-    const response = await fetch(`/api/spielzustand/${spielId}`); // GET-Anfrage
-    const neuerZustand = await response.json();
-    // ... hier aktualisierst du dein Frontend mit dem neuen Zustand
+  async function getGameState() {
+      const response = await fetch(` http://localhost:8080/api/spielzustand`); // GET-Anfrage
+      if (response.ok) {
+        const data = await response.json();
+        implementGameState(data);
+		}
   }
 
   onMount(() => {
     // Frage alle 3 Sekunden beim Backend nach, ob sich etwas geändert hat
-    intervalId = setInterval(frageSpielzustandAb, 3000);
+    intervalId = setInterval(getGameState, 3000);
   });
 
   onDestroy(() => {
-    // Wichtig: Den Intervall stoppen, wenn die Komponente verlassen wird
     clearInterval(intervalId);
   });
 </script>
 
-<main>
-  <div>
+<div class="game-container">
+  <AnimalDisplay animalDisplay = {$gameState?.animalDisplay ?? []}/>
+  <div class='pentagon'>
+    <Pentagon pentagon = {$gameState?.pentagon ?? []}/>
   </div>
-  <h1>Hello World</h1>
+  
+</div>
 
-  <div class="card">
-  </div>
-
-  <Button></Button>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
+{#if $gameState?.players[0]}
+  {#each $gameState.players as player}
+    <Player player={player} currentPlayerIndex={$gameState.currentPlayerIndex}/>
+  {/each}
+{/if}
 
 <style>
-  .read-the-docs {
-    color: #888;
+  .game-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .pentagon{
+    position: relative;
+    width: 250px;
+    height: 250px;
   }
 </style>
