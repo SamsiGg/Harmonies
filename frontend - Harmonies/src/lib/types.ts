@@ -4,7 +4,8 @@ export type GameState = {
     animalStack: AnimalStack,
     animalDisplay: AnimalDisplay,
     players: Players,
-    currentPlayerIndex: CurrentPlayerIndex
+    currentPlayerIndex: CurrentPlayerIndex,
+    winner: string
 }
 
 //Pentagon
@@ -26,6 +27,7 @@ export type AnimalDisplay = Animal[]
 
 export type Animal = {
     name: string;
+    dice: number;
 }
 
 //Players
@@ -36,7 +38,8 @@ export type Player = {
     animals: Animal[],
     tokenHand: TokenHand,
     index: number,
-    isBot: boolean
+    isBot: boolean,
+    score: number
 }
 
 export type Board = Tile[]
@@ -47,7 +50,7 @@ export type Tile = {
         x: number,
         y: number
     },
-    dice: number
+    die: boolean
 }
 
 export type TokenHand = Token[]

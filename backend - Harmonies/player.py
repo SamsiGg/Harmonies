@@ -1,6 +1,8 @@
 from __future__ import annotations
 import config
 from objects import Token, Animal
+from typing import TYPE_CHECKING
+
 
 class Player():
     """
@@ -16,19 +18,52 @@ class Player():
         self.index = index
         self.is_bot = is_bot
 
+        from score_calculator import ScoreCalculator
+        self.score_calculator = ScoreCalculator()
+        self.score = 0
+
     def to_dict(self):
+        self.score = self.score_calculator.calculate_total_score(self)
         player_dict = {
             'board': self.board.to_dict(),
             'animals': [animal.to_dict() for animal in self.animals],
             'tokenHand': self.token_hand.to_dict(),
             'index': self.index,
-            'isBot': self.is_bot
+            'isBot': self.is_bot,
+            'score': self.score
         }
         return player_dict
     
     def add_animal(self, animal: Animal):
         self.animals.append(animal)
         return True
+    
+    def place_die(self, position: tuple):
+        for tile in self.board.tiles:
+            if(tile.position == position):
+                clicked_tile = tile
+                break
+        
+        for animal in self.animals:
+            placeable = animal.die_placeable(position, self.board)
+            if placeable and animal.dice_amount > 0:
+                animal.take_die()
+                clicked_tile.set_die()
+                return True
+
+        return False
+    
+    def two_empty_tiles(self):
+        amount_empty = 0
+        for tile in self.board.tiles:
+            if len(tile.tokens) == 0:
+                amount_empty += 1
+
+        if amount_empty <= 2:
+            return True
+        
+        return False
+        
 
 class TokenHand():
 
@@ -80,12 +115,12 @@ class Tile():
     def __init__(self, position: tuple):
         self.tokens: list[Token] = []
         self.position = position
-        self.dice = False
+        self.has_die = False
 
     def __repr__(self):
         if len(self.tokens) == 0:
             return '<Tile: empty>'
-        return f'Tile: "{self.tokens}"'
+        return f'Tile: "{self.position}"'
     
     def to_dict(self):
         tile_dict = {
@@ -94,11 +129,14 @@ class Tile():
                 'x': self.position[0],
                 'y': self.position[1]
             },
-            'dice': int(self.dice)
+            'die': self.has_die
         }
         return tile_dict
     
     def check_if_add_token_valid(self, token: Token):
+
+        if self.has_die:
+            return False
 
         #Free Tile: valid
         if len(self.tokens) == 0:
@@ -129,3 +167,6 @@ class Tile():
             self.tokens.append(token)
             return True
         return False
+    
+    def set_die(self):
+        self.has_die = True

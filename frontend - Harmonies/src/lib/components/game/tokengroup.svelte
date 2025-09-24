@@ -22,7 +22,7 @@
     
     {#each tokens as color,i}
         {#if color}
-            <Token parent = 'token_group' {color} index = {i}/>
+            <Token parent = 'token_group' {color} index = {i} position={{x:-1000,y:-1000}} has_die={false}/>
         {/if}
     {/each}
 

@@ -76,9 +76,11 @@
     class="player player-{player.index}"
     class:active={player.index === currentPlayerIndex}
 >
+    <div>{player.score}</div>
     <div class='animals'>
         {#each player.animals as animal}
             <img src={`/animals/${animal.name}.jpg`} alt={animal.name} class="bild-box">
+            <div>{animal.dice}</div>
         {/each}
     </div>
     <Board 
@@ -98,7 +100,7 @@
     /* Allgemeine Stile für alle Spieler-Container */
     .player {
         position: fixed;
-        width: 550px;
+        width: 650px;
         height: 300px; 
         
         display: flex;

@@ -51,12 +51,19 @@
     {#if tile.tokens.length > 0}
       <span class="token-count">{tile.tokens.length}
         {#each tile.tokens as token, i}
-          <Token color={token.type} index={i} parent='tile' amount={tile.tokens.length}/>
+          <Token 
+            color={token.type} 
+            index={i} 
+            parent='tile' 
+            amount={tile.tokens.length}
+            position={tile.position}
+            has_die={tile.die}/>
         {/each}
       </span>
     {/if}
   </div>
 </div>
+
 
 <style>
   .hexagon {

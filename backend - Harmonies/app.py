@@ -10,7 +10,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-players = [None, RandomBot(), None ,RandomBot()]
+players = [RandomBot(), RandomBot(), RandomBot() ,RandomBot()]
 is_bot_list = [1 if player is not None else 0 for player in players]
 game_state = GameState(is_bot_list) 
 

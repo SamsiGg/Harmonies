@@ -2,6 +2,7 @@ import time
 import moves
 from gamestate import GameState, TurnAction
 from Bots.bot import Bot
+from score_calculator import ScoreCalculator
 
 class GameEngine():
 
@@ -49,6 +50,17 @@ class GameEngine():
 
                 self.run_bot_turn_if_needed()
 
+            if (action == 'PlaceDie'):
+                position = payload.get('position')
+                x = position.get('x')
+                y = position.get('y')
+                move_successful = moves.place_die(self.game_state, (x,y))
+
+        if (action == 'StartGame'):
+            print('alskjdflöasf')
+            self.run_bot_turn_if_needed()
+            move_successful = True
+
         self._trigger_update()
         return move_successful
     
@@ -61,17 +73,9 @@ class GameEngine():
         self.players[current_player_index].make_turn(self.game_state)
         self._trigger_update()
 
-        self.socketio.sleep(0)
+        self.socketio.sleep(0.5)
 
-        self.run_bot_turn_if_needed()
+        if not self.game_state.winner:
+            self.run_bot_turn_if_needed()
 
-
-
-        
-
-    def calculate_scores(self):
-        exit
-
-    def check_end_condition(self):
-        exit
 

@@ -1,6 +1,7 @@
 import config # Assuming you have a config.py file
 import objects
 import player
+from player import Player
 import components
 from enum import Enum, auto
 from typing import Set
@@ -30,6 +31,10 @@ class GameState():
         self.current_player_index = 0
         self.completed_moves_this_turn: Set[TurnAction] = set()
 
+        self.last_round = False
+
+        self.winner: Player = None
+
         self.players: list[player.Player] = []
         for i,is_bot in enumerate(is_bot_list):
             board = player.Board(self.board_type)
@@ -41,7 +46,8 @@ class GameState():
             'animalStack': self.animal_stack.to_dict(),
             'animalDisplay': self.animal_display.to_dict(),
             'players': [player.to_dict() for player in self.players],
-            'currentPlayerIndex': self.current_player_index
+            'currentPlayerIndex': self.current_player_index,
+            'winner': '' if self.winner == None else self.winner.index
         }
 
     def get_current_player(self) -> player.Player:
@@ -49,9 +55,35 @@ class GameState():
 
     def next_player(self):
         if self.current_player_index >= len(self.players) - 1:
+            if self.last_round:
+                self._determine_winner()
             self.current_player_index = 0
         else:
             self.current_player_index += 1
+
+    def _determine_winner(self):
+        for player in self.players:
+            if not self.winner:
+                self.winner = player
+
+            if player.score > self.winner.score:
+                self.winner = player
+
+            if player.score == self.winner.score:
+                player_dice = 0
+                winner_dice = 0
+
+                for tile in player.board.tiles:
+                    if tile.has_die:
+                        player_dice += 1
+                
+                for tile in self.winner.board.tiles:
+                    if tile.has_die:
+                        winner_dice += 1
+
+                if player_dice > winner_dice:
+                    self.winner = player
+
 
     def refill_animal_display(self):
         missing_amount = self.animal_display.max_amount-len(self.animal_display.animals)

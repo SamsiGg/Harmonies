@@ -80,7 +80,7 @@ class Pouch():
 
     def take_out_tokens(self, amount = 3):
         if amount > len(self.tokens):
-            return None
+            return []
 
         tokens = [self.tokens.pop() for _ in range(amount)]
         return tokens

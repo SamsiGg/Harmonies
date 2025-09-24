@@ -1,18 +1,29 @@
 <script lang="ts">
     import { DND_CONTEXT_KEY } from "../../contextKeys";
+    import { socket } from "../../socketStore";
+    import type { Token } from "../../types";
     import Tile from "./tile.svelte";
     import { getContext,hasContext } from "svelte";
+
+
 
     let {
         color,
         index,
         parent,
-        amount
+        amount,
+        position = {x:0,y:0},
+        has_die = false
     }: {
         color?: string,
         index: number,
         parent: string,
-        amount?: number
+        amount?: number,
+        position: {
+            x: number,
+            y: number
+        },
+        has_die: boolean
     } = $props();
 
     const tileTransform = $derived(() => {
@@ -42,8 +53,24 @@
         ? getContext<DragDropContext>(DND_CONTEXT_KEY).handleDragStart
         : undefined;
 
+    function handleTokenClick (event: MouseEvent){
+        if(event.ctrlKey && parent==='tile'){
+            if (!$socket) {
+                console.error("Socket not available!");
+                return;
+            }
+            $socket.emit('player_move', {
+                action: 'PlaceDie',
+                payload: {
+                    position: position 
+                }
+            });
+        }
+    }
+
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
     class="token {parent}_{index}"
     style="background-color: {color};"
@@ -56,8 +83,10 @@
         : undefined}
     role="button"
     tabindex="0"
+    onclick={handleTokenClick}
     
 >
+{has_die}
 </div>
 
 <style>

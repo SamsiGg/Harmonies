@@ -10,14 +10,6 @@
   import { writable } from 'svelte/store';
   import { socket } from './lib/socketStore';
 
-  /*async function getGameState() {
-      const response = await fetch(` http://localhost:8080/api/spielzustand`); // GET-Anfrage
-      if (response.ok) {
-        const data = await response.json();
-        implementGameState(data);
-		}
-  }*/
-
   onMount(() => {
     const socketInstance = io('http://localhost:8080');
     socket.set(socketInstance);
@@ -33,7 +25,24 @@
     return () => {
         socketInstance.disconnect();
     };
-});
+  });
+
+  $: if ($gameState?.winner && $gameState?.winner != '') {
+    alert(`Spiel beendet! Der Gewinner ist ${$gameState.winner}`);
+  }
+
+  function handleStartButtonClick() {
+        if (!$socket) {
+            console.error("Socket not available!");
+            return;
+        }
+        console.log('Sende Zug per WebSocket...');
+        $socket.emit('player_move', {
+            action: 'StartGame',
+            payload: { 
+            }
+        });
+    }
 </script>
 
 <div class="game-container">
@@ -41,7 +50,7 @@
   <div class='pentagon'>
     <Pentagon pentagon = {$gameState?.pentagon ?? []}/>
   </div>
-  
+  <button onclick={handleStartButtonClick}>Start Game</button>
 </div>
 
 {#if $gameState?.players[0]}
@@ -61,5 +70,10 @@
     position: relative;
     width: 250px;
     height: 250px;
+  }
+  .asdf{
+    width: 10px;
+    height: 10px;
+    background-color: rgb(30, 215, 228);
   }
 </style>
