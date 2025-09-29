@@ -78,6 +78,12 @@ class TokenHand():
     
     def read_token(self, index):
         return self.tokens[index]
+    
+    def sort_tokens(self, order):
+        new_tokens = [None, None, None]
+
+        if len(self.tokens) == 3:
+            self.tokens = [self.tokens[i] for i in order]
 
     def to_dict(self):
         return [token.to_dict() if token is not None else None for token in self.tokens]
@@ -101,6 +107,9 @@ class Board():
                 for pos in positions:
                     self.tiles.append(Tile(pos))
 
+    def __repr__(self):
+        return str(self.tiles)
+
     def to_dict(self):
         return [tile.to_dict() for tile in self.tiles]
 
@@ -120,7 +129,7 @@ class Tile():
     def __repr__(self):
         if len(self.tokens) == 0:
             return '<Tile: empty>'
-        return f'Tile: "{self.position}"'
+        return f'Tile: "{self.position}", Tokens:{self.tokens}'
     
     def to_dict(self):
         tile_dict = {
@@ -170,3 +179,6 @@ class Tile():
     
     def set_die(self):
         self.has_die = True
+
+    def take_top_token(self):
+        return self.tokens.pop()

@@ -115,7 +115,7 @@ class Animal():
         
         return dx, dy
 
-    def _point_exists(self, board_points, x, y):
+    def _point_exists(self, board_points: set[tuple[float, float]], x, y):
         for point in board_points:
             if self._are_points_close(point,(x,y)):
                 return True

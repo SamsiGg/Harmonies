@@ -4,13 +4,14 @@ from flask_cors import CORS
 from gamestate import GameState
 from gameengine import GameEngine
 from Bots.randomBot import RandomBot
+from Bots.greedyBot import GreedyBot
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-players = [RandomBot(), RandomBot(), RandomBot() ,RandomBot()]
+players = [GreedyBot(), None, None ,None]
 is_bot_list = [1 if player is not None else 0 for player in players]
 game_state = GameState(is_bot_list) 
 

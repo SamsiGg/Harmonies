@@ -46,7 +46,7 @@ class GameEngine():
                 move_successful = moves.take_animal(self.game_state, payload.get('name'))
                 
             if (action == 'FinishMove' and payload.get('player_index') == self.game_state.current_player_index):
-                move_successful = moves.finish_move(self.game_state)
+                move_successful = self.game_state.finish_move()
 
                 self.run_bot_turn_if_needed()
 

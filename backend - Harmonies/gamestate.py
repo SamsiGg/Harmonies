@@ -5,6 +5,8 @@ from player import Player
 import components
 from enum import Enum, auto
 from typing import Set
+import copy
+import os
 
 class TurnAction(Enum):
     TOKENS_TAKEN = auto()  # Was a token group taken from the pentagon
@@ -39,6 +41,53 @@ class GameState():
         for i,is_bot in enumerate(is_bot_list):
             board = player.Board(self.board_type)
             self.players.append(player.Player(board,i,is_bot))
+
+        self.current_move = {
+            'token_group_index': 0,
+            'tile_token_placed': [],
+            'token_order': [],
+            'dice_positions': [],
+            'animal_name': ''
+        }
+
+    def empty_move(self):
+        self.current_move = {
+            'token_group_index': 0,
+            'tile_token_placed': [],
+            'token_order': [],
+            'dice_positions': [],
+            'animal_name': ''
+        }
+
+    def copy(self):
+        return copy.deepcopy(self)
+    
+    def undo_token_placing(self):
+        """
+        Undoes placing the tokens, done on this gamestate.
+        """
+        token_hand = self.get_current_player().token_hand.tokens
+        for tile in self.current_move['tile_token_placed']:
+            token_hand.insert(0, tile.take_top_token())
+
+        self.current_move['tile_token_placed'] = []
+
+        if TurnAction.TOKENS_PLACED in self.completed_moves_this_turn:
+            self.completed_moves_this_turn.remove(TurnAction.TOKENS_PLACED)
+
+
+    def undo_dice_placing(self):
+        """
+        Undoes placing any amount of dice
+        """
+        for die_position in self.current_move['dice_positions']:
+            for tile in self.get_current_player().board.tiles:
+                if tile.position is die_position:
+                    print(die_position)
+                    print(tile.has_die)
+                    tile.has_die = False
+        self.current_move['dice_positions'] = []
+
 
     def to_dict(self):
         return {
@@ -95,3 +144,29 @@ class GameState():
     def refill_pentagon(self):
         tokens = self.pouch.take_out_tokens(3)
         self.pentagon.add_token_group(tokens)
+
+    def finish_move(self):
+
+        if (TurnAction.TOKENS_PLACED in self.completed_moves_this_turn):
+            if self._check_end_condition():
+                self.last_round = True
+            self.completed_moves_this_turn.clear()
+            self.next_player()
+            self.refill_animal_display()
+            self.refill_pentagon()
+            self.empty_move()
+            if self.winner:
+                print('There is a winner: Player' + str(self.winner.index) + ' with ' + str(self.winner.score) + ' points!')
+            return True
+
+        return False
+    
+    def _check_end_condition(self):
+        for player in self.players:
+            if player.two_empty_tiles():
+                return True
+            
+        if len(self.pouch.tokens) <= 2:
+            return True
+        
+        return False
